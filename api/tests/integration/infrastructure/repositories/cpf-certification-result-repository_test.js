@@ -392,6 +392,37 @@ describe('Integration | Repository | CpfCertificationResult', function () {
         expect(cpfCertificationResults).to.be.empty;
       });
     });
+
+    context('when the certification course sex is not defined', function () {
+      it('should return an empty array', async function () {
+        // given
+        const startDate = new Date('2022-01-01');
+        const endDate = new Date('2022-01-10');
+
+        const publishedSessionId = databaseBuilder.factory.buildSession({ publishedAt: new Date('2022-01-08') }).id;
+        databaseBuilder.factory.buildCertificationCourse({
+          id: 145,
+          firstName: 'Barack',
+          lastName: 'Afritt',
+          birthdate: '2004-10-22',
+          sex: null,
+          birthINSEECode: '75116',
+          birthPostalCode: null,
+          isPublished: true,
+          sessionId: publishedSessionId,
+        });
+        await databaseBuilder.commit();
+
+        // when
+        const cpfCertificationResults = await cpfCertificationResultRepository.findByTimeRange({
+          startDate,
+          endDate,
+        });
+
+        // then
+        expect(cpfCertificationResults).to.be.empty;
+      });
+    });
   });
 
   describe('#findByIdRange', function () {
@@ -766,6 +797,37 @@ describe('Integration | Repository | CpfCertificationResult', function () {
           lastName: 'Afritt',
           birthdate: '2004-10-22',
           sex: 'M',
+          birthINSEECode: '75116',
+          birthPostalCode: null,
+          isPublished: true,
+          sessionId: publishedSessionId,
+        }).id;
+        await databaseBuilder.commit();
+
+        // when
+        const cpfCertificationResults = await cpfCertificationResultRepository.findByIdRange({
+          startId,
+          endId,
+        });
+
+        // then
+        expect(cpfCertificationResults).to.be.empty;
+      });
+    });
+
+    context('when the certification course sex is not defined', function () {
+      it('should return an empty array', async function () {
+        // given
+        const startId = 100;
+        const endId = 200;
+
+        const publishedSessionId = databaseBuilder.factory.buildSession({ publishedAt: new Date('2022-01-08') }).id;
+        databaseBuilder.factory.buildCertificationCourse({
+          id: 145,
+          firstName: 'Barack',
+          lastName: 'Afritt',
+          birthdate: '2004-10-22',
+          sex: null,
           birthINSEECode: '75116',
           birthPostalCode: null,
           isPublished: true,
