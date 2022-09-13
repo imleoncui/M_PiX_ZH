@@ -17,45 +17,46 @@ const { NotFoundError } = require('../lib/domain/errors');
  */
 async function main() {
   logger.info("Début du script de génération d'attestations pour une session.");
-  const sessionId = process.argv[2];
 
-  if (!sessionId) {
-    throw new Error('Le paramêtre représentant le numéro de session est obligatoire.');
-  }
+  const sessionIds = [
+    // tableau d'ID
+  ];
 
-  const certificationCourses = await certificationCourseRepository.findCertificationCoursesBySessionId({ sessionId });
+  await bluebird.mapSeries(sessionIds, async (sessionId) => {
+    const certificationCourses = await certificationCourseRepository.findCertificationCoursesBySessionId({ sessionId });
 
-  if (isEmpty(certificationCourses)) {
-    throw new Error(`Pas de certifications trouvées pour la session ${sessionId}`);
-  }
+    if (isEmpty(certificationCourses)) {
+      throw new Error(`Pas de certifications trouvées pour la session ${sessionId}`);
+    }
 
-  const certificationAttestations = compact(
-    await bluebird.mapSeries(certificationCourses, async (certificationCourse) => {
-      try {
-        return await certificationAttestationRepository.get(certificationCourse.getId());
-      } catch (error) {
-        if (error instanceof NotFoundError) {
-          return null;
+    const certificationAttestations = compact(
+      await bluebird.mapSeries(certificationCourses, async (certificationCourse) => {
+        try {
+          return await certificationAttestationRepository.get(certificationCourse.getId());
+        } catch (error) {
+          if (error instanceof NotFoundError) {
+            return null;
+          }
+          throw error;
         }
-        throw error;
-      }
-    })
-  );
+      })
+    );
 
-  if (isEmpty(certificationAttestations)) {
-    throw new Error(`Pas d'attesations trouvées pour la session ${sessionId}`);
-  }
+    if (isEmpty(certificationAttestations)) {
+      throw new Error(`Pas d'attesations trouvées pour la session ${sessionId}`);
+    }
 
-  logger.info(`Attestations pour la session ${sessionId} récupérées.`);
+    logger.info(`Attestations pour la session ${sessionId} récupérées.`);
 
-  const { buffer } = await certificationAttestationPdf.getCertificationAttestationsPdfBuffer({
-    certificates: certificationAttestations,
+    const { buffer } = await certificationAttestationPdf.getCertificationAttestationsPdfBuffer({
+      certificates: certificationAttestations,
+    });
+
+    logger.info(`Génération du fichier pdf.`);
+
+    // eslint-disable-next-line no-sync
+    fs.writeFileSync(`attestation-pix-session-${sessionId}.pdf`, buffer);
   });
-
-  logger.info(`Génération du fichier pdf.`);
-
-  // eslint-disable-next-line no-sync
-  fs.writeFileSync(`attestation-pix-session-${sessionId}.pdf`, buffer);
 
   logger.info('Fin du script.');
 }
