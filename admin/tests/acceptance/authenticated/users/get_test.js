@@ -52,7 +52,7 @@ module('Acceptance | authenticated/users/get', function (hooks) {
     assert.dom(screen.getByRole('heading', { name: 'Informations prescrit' })).exists();
 
     const userNavigation = within(screen.getByLabelText("Navigation de la section détails d'un utilisateur"));
-    assert.dom(userNavigation.getByRole('link', { name: 'Informations' })).exists();
+    assert.dom(userNavigation.getByRole('link', { name: 'Détails' })).exists();
     assert.dom(userNavigation.getByRole('link', { name: 'Profil' })).exists();
     assert.dom(userNavigation.getByRole('link', { name: 'Participations' })).exists();
     assert.dom(userNavigation.getByRole('link', { name: 'Centres de certification' })).exists();
