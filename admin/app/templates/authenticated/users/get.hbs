@@ -34,6 +34,15 @@
     >
       Organisations
     </LinkTo>
+
+    <LinkTo
+      @route="authenticated.users.get.certification-centers"
+      @model={{@model}}
+      class="navbar-item certification-center-navbar"
+      aria-label="Centres de certification auxquels appartient l´utilisateur"
+    >
+      Centres de certification
+    </LinkTo>
   </nav>
 
   {{outlet}}
