@@ -254,4 +254,45 @@ module('Acceptance | authenticated/users/get', function (hooks) {
       assert.dom(screen.getByText('Dragon & Co')).exists();
     });
   });
+
+  module('when administrator clicks on certification centers tab', function () {
+    test('should display user’s certification centers', async function (assert) {
+      // given
+      const certificationCenterMembership1 = this.server.create('user-certification-center-membership', {
+        certificationCenterId: 1,
+        certificationCenterName: 'Centre Kaede',
+        certificationCenterType: 'SCO',
+        certificationCenterExternalId: '1234',
+      });
+
+      const certificationCenterMembership2 = this.server.create('user-certification-center-membership', {
+        certificationCenterId: 2,
+        certificationCenterName: 'Centre Shigeru',
+        certificationCenterType: 'PRO',
+        certificationCenterExternalId: '12343',
+      });
+
+      const user = server.create('user', {
+        email: 'john.harry@example.net',
+        certificationCenterMemberships: [certificationCenterMembership1, certificationCenterMembership2],
+      });
+
+      this.server.create('admin-member', {
+        userId: user.id,
+        isSuperAdmin: true,
+      });
+      await createAuthenticateSession({ userId: user.id });
+
+      const screen = await visit(`/users/${user.id}`);
+
+      // when
+      await click(screen.getByLabelText('Centres de certification auxquels appartient l´utilisateur'));
+
+      // then
+      assert.deepEqual(currentURL(), `/users/${user.id}/certification-centers`);
+
+      assert.dom(screen.getByText('Centre Kaede')).exists();
+      assert.dom(screen.getByText('Centre Shigeru')).exists();
+    });
+  });
 });
