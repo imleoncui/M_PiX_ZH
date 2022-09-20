@@ -23,9 +23,11 @@ const validationErrorSerializer = require('../../../../lib/infrastructure/serial
 const updateEmailSerializer = require('../../../../lib/infrastructure/serializers/jsonapi/update-email-serializer');
 const authenticationMethodsSerializer = require('../../../../lib/infrastructure/serializers/jsonapi/authentication-methods-serializer');
 const userOrganizationForAdminSerializer = require('../../../../lib/infrastructure/serializers/jsonapi/user-organization-for-admin-serializer');
+const userCertificationCentersForAdminSerializer = require('../../../../lib/infrastructure/serializers/jsonapi/user-certification-center-for-admin-serializer');
 
 const userController = require('../../../../lib/application/users/user-controller');
 const UserOrganizationForAdmin = require('../../../../lib/domain/read-models/UserOrganizationForAdmin');
+const UserCertificationCenterForAdmin = require('../../../../lib/domain/read-models/UserCertificationCenterForAdmin');
 
 describe('Unit | Controller | user-controller', function () {
   describe('#save', function () {
@@ -1143,6 +1145,32 @@ describe('Unit | Controller | user-controller', function () {
 
       // then
       expect(usecases.findUserOrganizationsForAdmin).to.have.been.calledWith({ userId: 1 });
+    });
+  });
+
+  describe('#findUserCertificationCentersForAdmin', function () {
+    it("should return user's certification centers", async function () {
+      // given
+      const certificationCenters = [new UserCertificationCenterForAdmin()];
+      const userCertificationCentersSerialized = Symbol("an array of user's certification centers serialized");
+
+      sinon
+        .stub(userCertificationCentersForAdminSerializer, 'serialize')
+        .withArgs(certificationCenters)
+        .returns(userCertificationCentersSerialized);
+
+      sinon.stub(usecases, 'findUserCertificationCentersForAdmin').resolves(certificationCenters);
+
+      // when
+      const request = {
+        params: {
+          id: 1,
+        },
+      };
+      await userController.findUserCertificationCentersForAdmin(request, hFake);
+
+      // then
+      expect(usecases.findUserCertificationCentersForAdmin).to.have.been.calledWith({ userId: 1 });
     });
   });
 });
