@@ -92,6 +92,11 @@ describe('Acceptance | Controller | users-controller-get-user-details-for-admin'
               'authentication-methods': {
                 data: [],
               },
+              'certification-center-memberships': {
+                links: {
+                  related: '/api/admin/users/105188/certification-centers',
+                },
+              },
               'organization-learners': {
                 data: [],
               },

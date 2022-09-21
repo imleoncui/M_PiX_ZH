@@ -23,7 +23,10 @@ export default class User extends Model {
 
   @hasMany('membership') memberships;
   @hasMany('organization-membership') organizationMemberships;
-  @hasMany('certification-center-membership') certificationCenterMemberships;
+  // As of now we can't use the model "certification-center-membership" is already used,
+  // maybe we should reuse it here?
+  // @hasMany('certification-center-membership') certificationCenterMemberships;
+  @hasMany('user-certification-center-membership') certificationCenterMemberships;
   @hasMany('organization-learner') organizationLearners;
   @hasMany('authentication-method') authenticationMethods;
   @hasMany('user-participation') participations;

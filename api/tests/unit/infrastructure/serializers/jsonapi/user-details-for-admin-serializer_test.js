@@ -49,6 +49,11 @@ describe('Unit | Serializer | JSONAPI | user-details-for-admin-serializer', func
                 },
               ],
             },
+            'certification-center-memberships': {
+              links: {
+                related: '/api/admin/users/123/certification-centers',
+              },
+            },
             'organization-learners': {
               data: [
                 {
