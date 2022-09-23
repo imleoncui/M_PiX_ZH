@@ -1,5 +1,6 @@
 const { PassThrough } = require('stream');
 const moment = require('moment-timezone');
+const { createGzip } = require('node:zlib');
 
 module.exports = async function createAndUpload({
   data,
@@ -13,11 +14,12 @@ module.exports = async function createAndUpload({
   });
 
   const writableStream = new PassThrough();
-  cpfCertificationXmlExportService.buildXmlExport({ cpfCertificationResults, writableStream });
+  await cpfCertificationXmlExportService.buildXmlExport({ cpfCertificationResults, writableStream });
 
+  const gzip = createGzip();
   const now = moment().tz('Europe/Paris').format('YYYYMMDD-HHmmssSSS');
-  const filename = `pix-cpf-export-${now}.xml`;
-  await cpfExternalStorage.upload({ filename, writableStream });
+  const filename = `pix-cpf-export-${now}.xml.gz`;
+  await cpfExternalStorage.upload({ filename, writableStream: writableStream.pipe(gzip) });
 
   await cpfCertificationResultRepository.markCertificationCoursesAsExported({ certificationCourseIds, filename });
 };

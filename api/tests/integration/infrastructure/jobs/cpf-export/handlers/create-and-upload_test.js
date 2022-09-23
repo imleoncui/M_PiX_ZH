@@ -1,12 +1,15 @@
 const { domainBuilder, expect, sinon } = require('../../../../../test-helper');
 const createAndUpload = require('../../../../../../lib/infrastructure/jobs/cpf-export/handlers/create-and-upload');
-const { PassThrough, Writable } = require('stream');
+const { createUnzip } = require('node:zlib');
 
-describe('Unit | Infrastructure | jobs | cpf-export | create-and-upload', function () {
+const { PassThrough } = require('stream');
+
+describe('Integration | Infrastructure | jobs | cpf-export | create-and-upload', function () {
   let cpfCertificationResultRepository;
   let cpfCertificationXmlExportService;
   let cpfExternalStorage;
   let clock;
+  const expectedFileName = 'pix-cpf-export-20220101-114327000.xml.gz';
 
   beforeEach(function () {
     clock = sinon.useFakeTimers(new Date('2022-01-01T10:43:27Z'));
@@ -41,6 +44,29 @@ describe('Unit | Infrastructure | jobs | cpf-export | create-and-upload', functi
 
     cpfCertificationResultRepository.findByCertificationCourseIds.resolves(cpfCertificationResults);
 
+    cpfCertificationXmlExportService.buildXmlExport
+      .withArgs({
+        cpfCertificationResults,
+        writableStream: sinon.match(PassThrough),
+      })
+      .callsFake(async ({ cpfCertificationResults, writableStream }) => {
+        await writableStream.write(JSON.stringify(cpfCertificationResults));
+        return writableStream.end();
+      });
+
+    cpfExternalStorage.upload
+      .withArgs({
+        filename: expectedFileName,
+        writableStream: sinon.match(PassThrough),
+      })
+      .callsFake(async ({ writableStream }) => {
+        const unzip = createUnzip();
+        const unziped = writableStream.pipe(unzip);
+        const readableFile = await _streamToString(unziped);
+
+        expect(readableFile).to.equals(JSON.stringify(cpfCertificationResults));
+      });
+
     // when
     await createAndUpload({
       data: { certificationCourseIds },
@@ -49,21 +75,21 @@ describe('Unit | Infrastructure | jobs | cpf-export | create-and-upload', functi
       cpfExternalStorage,
     });
 
-    // then
     expect(cpfCertificationResultRepository.findByCertificationCourseIds).to.have.been.calledWith({
       certificationCourseIds,
     });
-    expect(cpfCertificationXmlExportService.buildXmlExport).to.have.been.calledWith({
-      cpfCertificationResults,
-      writableStream: sinon.match(PassThrough),
-    });
-    expect(cpfExternalStorage.upload).to.have.been.calledWith({
-      filename: 'pix-cpf-export-20220101-114327000.xml.gz',
-      writableStream: sinon.match(Writable),
-    });
     expect(cpfCertificationResultRepository.markCertificationCoursesAsExported).to.have.been.calledWith({
       certificationCourseIds,
-      filename: 'pix-cpf-export-20220101-114327000.xml.gz',
+      filename: expectedFileName,
     });
   });
 });
+
+function _streamToString(stream) {
+  const chunks = [];
+  return new Promise((resolve, reject) => {
+    stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+    stream.on('error', (err) => reject(err));
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+  });
+}
