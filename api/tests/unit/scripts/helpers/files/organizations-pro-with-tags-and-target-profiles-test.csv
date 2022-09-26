@@ -1,2 +1,2 @@
-externalId;name;provinceCode;credit;email;locale;tags;createdBy;documentationUrl;targetProfiles
-TUTU001;Team Accès;123;;   team-acces@e  x  ample.net   ;;PUBLIC_AGRICULTURE;100;https://pix.fr/;123456
+type,externalId,name,provinceCode,credit,emailInvitations,emailForSCOActivation,organizationInvitationRole,locale,tags,createdBy,documentationUrl,targetProfiles,isManagingStudents,identityProviderForCampaigns
+pro,TUTU001,Team Accès,123,,   team-acces@e  x  ample.net   ,superadmin@example.net,admin,,PUBLIC_AGRICULTURE,100,https://pix.fr/,123456,,pole_emploi

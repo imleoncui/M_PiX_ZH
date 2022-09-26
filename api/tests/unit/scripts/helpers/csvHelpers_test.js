@@ -99,7 +99,7 @@ describe('Unit | Scripts | Helpers | csvHelpers.js', function () {
         const data = await parseCsvWithHeader(organizationProWithTagsAndTargetProfilesFilePath);
 
         // then
-        expect(data[0].email).to.equal('team-acces@example.net');
+        expect(data[0].emailInvitations).to.equal('team-acces@example.net');
       });
     });
 
@@ -121,6 +121,38 @@ describe('Unit | Scripts | Helpers | csvHelpers.js', function () {
         // then
         expect(data[0].locale).to.equal('fr-fr');
       });
+    });
+
+    it('should convert isManagingStudents to a boolean', async function () {
+      // given & when
+      const data = await parseCsvWithHeader(organizationProWithTagsAndTargetProfilesFilePath);
+
+      // then
+      expect(data[0].isManagingStudents).to.equal(false);
+    });
+
+    it('should convert identityProviderForCampaigns to uppercase', async function () {
+      // given & when
+      const data = await parseCsvWithHeader(organizationProWithTagsAndTargetProfilesFilePath);
+
+      // then
+      expect(data[0].identityProviderForCampaigns).to.equal('POLE_EMPLOI');
+    });
+
+    it('should convert organizationInvitationRole to uppercase', async function () {
+      // given & when
+      const data = await parseCsvWithHeader(organizationProWithTagsAndTargetProfilesFilePath);
+
+      // then
+      expect(data[0].organizationInvitationRole).to.equal('ADMIN');
+    });
+
+    it('should convert type to uppercase', async function () {
+      // given & when
+      const data = await parseCsvWithHeader(organizationProWithTagsAndTargetProfilesFilePath);
+
+      // then
+      expect(data[0].type).to.equal('PRO');
     });
   });
 
