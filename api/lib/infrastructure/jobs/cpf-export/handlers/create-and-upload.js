@@ -16,10 +16,10 @@ module.exports = async function createAndUpload({
   const writableStream = new PassThrough();
   await cpfCertificationXmlExportService.buildXmlExport({ cpfCertificationResults, writableStream });
 
-  const gzip = createGzip();
+  //const gzip = createGzip();
   const now = moment().tz('Europe/Paris').format('YYYYMMDD-HHmmssSSS');
-  const filename = `pix-cpf-export-${now}.xml.gz`;
-  await cpfExternalStorage.upload({ filename, writableStream: writableStream.pipe(gzip) });
+  const filename = `pix-cpf-export-${now}.xml`;
+  await cpfExternalStorage.upload({ filename, writableStream });
 
   await cpfCertificationResultRepository.markCertificationCoursesAsExported({ certificationCourseIds, filename });
 };
