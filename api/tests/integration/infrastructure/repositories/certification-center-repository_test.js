@@ -1,6 +1,7 @@
 const { expect, knex, databaseBuilder, domainBuilder, catchErr, sinon } = require('../../../test-helper');
 const certificationCenterRepository = require('../../../../lib/infrastructure/repositories/certification-center-repository');
 const CertificationCenter = require('../../../../lib/domain/models/CertificationCenter');
+const User = require('../../../../lib/domain/models/User');
 const { NotFoundError } = require('../../../../lib/domain/errors');
 const _ = require('lodash');
 
@@ -775,6 +776,54 @@ describe('Integration | Repository | Certification Center', function () {
 
         // then
         expect(certificationCenter).to.be.null;
+      });
+    });
+  });
+
+  describe('#getReferer', function () {
+    context('when the certification center has no referer', function () {
+      it('should return null', async function () {
+        // given
+        databaseBuilder.factory.buildCertificationCenterMembership({
+          userId: databaseBuilder.factory.buildUser().id,
+          certificationCenterId: databaseBuilder.factory.buildCertificationCenter().id,
+          isReferer: true,
+        });
+        const certificationCenterId = databaseBuilder.factory.buildCertificationCenter().id;
+        const userId = databaseBuilder.factory.buildUser().id;
+        databaseBuilder.factory.buildCertificationCenterMembership({ certificationCenterId, userId, isReferer: false });
+        await databaseBuilder.commit();
+
+        // when
+        const referer = await certificationCenterRepository.getReferer(certificationCenterId);
+
+        // then
+        expect(referer).to.be.null;
+      });
+    });
+
+    context('when the certification center has a referer', function () {
+      it('should return a User', async function () {
+        // given
+        databaseBuilder.factory.buildCertificationCenterMembership({
+          userId: databaseBuilder.factory.buildUser().id,
+          certificationCenterId: databaseBuilder.factory.buildCertificationCenter().id,
+          isReferer: true,
+        });
+        const certificationCenterId = databaseBuilder.factory.buildCertificationCenter().id;
+        const user = databaseBuilder.factory.buildUser();
+        databaseBuilder.factory.buildCertificationCenterMembership({
+          certificationCenterId,
+          userId: user.id,
+          isReferer: true,
+        });
+        await databaseBuilder.commit();
+
+        // when
+        const referer = await certificationCenterRepository.getReferer(certificationCenterId);
+
+        // then
+        expect(referer).to.deepEqualInstance(new User(user));
       });
     });
   });
