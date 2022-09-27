@@ -3,6 +3,7 @@ const {
   getSessionCertificationResultsCsv,
   getDivisionCertificationResultsCsv,
   REJECTED_AUTOMATICALLY_COMMENT,
+  getCleaCertifiedCandidateCsv,
 } = require('../../../../../lib/infrastructure/utils/csv/certification-results');
 const {
   PIX_EMPLOI_CLEA_V3,
@@ -461,6 +462,112 @@ describe('Integration | Infrastructure | Utils | csv | certification-results', f
           '"Numéro de certification";"Prénom";"Nom";"Date de naissance";"Lieu de naissance";"Identifiant Externe";"Statut";"Nombre de Pix";"1.1";"1.2";"1.3";"2.1";"2.2";"2.3";"2.4";"3.1";"3.2";"3.3";"3.4";"4.1";"4.2";"4.3";"5.1";"5.2";"Commentaire jury pour l’organisation";"Session";"Date de passage de la certification"\n' +
           '123;"Lili";"Oxford";"04/01/1990";"Torreilles";"LOLORD";"Annulée";"-";"-";"-";"-";"-";"-";"-";"-";"-";"-";"-";"-";"-";"-";"-";"-";"-";"RAS";777;"01/01/2020"';
         expect(result).to.equal(expectedResult);
+      });
+    });
+  });
+  context('#getCleaCertifiedCandidateCsv', function () {
+    context('when at least one candidate has passed a clea certification', function () {
+      it("returns a csv with candidate's information", async function () {
+        // given
+        const CleaCertifiedCandidate1 = domainBuilder.buildCleaCertifiedCandidate({
+          firstName: 'Léane',
+          lastName: 'Bern',
+          email: 'princesse-lele@gg.fr',
+          birthdate: '2001-05-10',
+          birthplace: 'Paris',
+          birthPostalCode: '75019',
+          birthINSEECode: '75119',
+          birthCountry: 'FRANCE',
+          sex: 'F',
+          createdAt: new Date('2020-02-01'),
+        });
+        const CleaCertifiedCandidate2 = domainBuilder.buildCleaCertifiedCandidate({
+          firstName: 'Jean-Mi',
+          lastName: 'Mi',
+          email: 'jean-mi@coco.fr',
+          birthdate: '2001-02-07',
+          birthplace: 'Paris',
+          birthPostalCode: '75015',
+          birthINSEECode: '75115',
+          birthCountry: 'FRANCE',
+          sex: 'M',
+          createdAt: new Date('2020-02-01'),
+        });
+
+        // when
+        const result = await getCleaCertifiedCandidateCsv([CleaCertifiedCandidate1, CleaCertifiedCandidate2]);
+
+        // then
+        const headers =
+          '"SIREN de l\'organisme";"Siret de l\'établissement";"Statut à l\'inscription";"Niveau d\'instruction";"Origine de la démarche";"Financeur";"Civilité";"Nom de naissance";"Nom d\'usage";"Prénom";"Email";"Téléphone";"Adresse";"Complément d\'adresse";"Ville";"Code postal";"Date de naissance";"Né à l\'étranger";"Zone géographique de naissance";"Né en collectivité d\'outre-mer";"Ville de naissance";"Code postal de naissance";"Date de passage";"CCPI";"Statut";"Obtention après la première évaluation ?"\n';
+        const CleaCertifiedCandidate1Data =
+          ';;;;;;"MME";"Bern";;"Léane";"princesse-lele@gg.fr";;;;;;"2001-05-10";"NON";;"NON";"Paris";"75019";"01/02/2020";"CléA Numérique by Pix";"CERTIFIE";\n';
+        const CleaCertifiedCandidate2Data =
+          ';;;;;;"M";"Mi";;"Jean-Mi";"jean-mi@coco.fr";;;;;;"2001-02-07";"NON";;"NON";"Paris";"75015";"01/02/2020";"CléA Numérique by Pix";"CERTIFIE";';
+
+        const expectedResult = '\uFEFF' + headers + CleaCertifiedCandidate1Data + CleaCertifiedCandidate2Data;
+
+        expect(result).to.equal(expectedResult);
+      });
+      context('when clea certified candidates are born in french outermost region', function () {
+        it('should return csvContent with correct geographic area code and correct outermost born value', async function () {
+          // given
+          const CleaCertifiedCandidate = domainBuilder.buildCleaCertifiedCandidate({
+            firstName: 'Léane',
+            lastName: 'Bern',
+            email: 'princesse-lele@gg.fr',
+            birthdate: '2001-05-10',
+            birthplace: 'STE MARIE',
+            birthPostalCode: '97418',
+            birthINSEECode: '97418',
+            birthCountry: 'FRANCE',
+            sex: 'F',
+            createdAt: new Date('2020-02-01'),
+          });
+
+          // when
+          const result = await getCleaCertifiedCandidateCsv([CleaCertifiedCandidate]);
+
+          // then
+          const headers =
+            '"SIREN de l\'organisme";"Siret de l\'établissement";"Statut à l\'inscription";"Niveau d\'instruction";"Origine de la démarche";"Financeur";"Civilité";"Nom de naissance";"Nom d\'usage";"Prénom";"Email";"Téléphone";"Adresse";"Complément d\'adresse";"Ville";"Code postal";"Date de naissance";"Né à l\'étranger";"Zone géographique de naissance";"Né en collectivité d\'outre-mer";"Ville de naissance";"Code postal de naissance";"Date de passage";"CCPI";"Statut";"Obtention après la première évaluation ?"\n';
+          const CleaCertifiedCandidateData =
+            ';;;;;;"MME";"Bern";;"Léane";"princesse-lele@gg.fr";;;;;;"2001-05-10";"NON";;"OUI";"STE MARIE";"97418";"01/02/2020";"CléA Numérique by Pix";"CERTIFIE";';
+
+          const expectedResult = '\uFEFF' + headers + CleaCertifiedCandidateData;
+
+          expect(result).to.equal(expectedResult);
+        });
+      });
+      context('when clea certified candidates are born in foreign country', function () {
+        it('should return csvContent with correct foreign born value', async function () {
+          // given
+          const CleaCertifiedCandidate = domainBuilder.buildCleaCertifiedCandidate({
+            firstName: 'Léane',
+            lastName: 'Bern',
+            email: 'princesse-lele@gg.fr',
+            birthdate: '2001-05-10',
+            birthplace: 'STE MARIE',
+            birthPostalCode: '99416',
+            birthINSEECode: '99416',
+            birthCountry: 'BRESIL',
+            sex: 'F',
+            createdAt: new Date('2020-02-01'),
+          });
+
+          // when
+          const result = await getCleaCertifiedCandidateCsv([CleaCertifiedCandidate]);
+
+          // then
+          const headers =
+            '"SIREN de l\'organisme";"Siret de l\'établissement";"Statut à l\'inscription";"Niveau d\'instruction";"Origine de la démarche";"Financeur";"Civilité";"Nom de naissance";"Nom d\'usage";"Prénom";"Email";"Téléphone";"Adresse";"Complément d\'adresse";"Ville";"Code postal";"Date de naissance";"Né à l\'étranger";"Zone géographique de naissance";"Né en collectivité d\'outre-mer";"Ville de naissance";"Code postal de naissance";"Date de passage";"CCPI";"Statut";"Obtention après la première évaluation ?"\n';
+          const CleaCertifiedCandidateData =
+            ';;;;;;"MME";"Bern";;"Léane";"princesse-lele@gg.fr";;;;;;"2001-05-10";"OUI";"400";"NON";"STE MARIE";"99416";"01/02/2020";"CléA Numérique by Pix";"CERTIFIE";';
+
+          const expectedResult = '\uFEFF' + headers + CleaCertifiedCandidateData;
+
+          expect(result).to.equal(expectedResult);
+        });
       });
     });
   });

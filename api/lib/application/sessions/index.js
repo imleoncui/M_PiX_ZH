@@ -2,6 +2,7 @@ const Joi = require('joi');
 const securityPreHandlers = require('../security-pre-handlers');
 const sessionController = require('./session-controller');
 const sessionForSupervisingController = require('./session-for-supervising-controller');
+const sessionWithCleaCertifiedCandidateController = require('./session-with-clea-certified-candidate-controller');
 const finalizedSessionController = require('./finalized-session-controller');
 const authorization = require('../preHandlers/authorization');
 const identifiersType = require('../../domain/types/identifiers-type');
@@ -778,6 +779,19 @@ exports.register = async (server) => {
           "- L'attribut **studentIds** en payload est **déprécié** en faveur de **organizationLearnerIds**",
         ],
         tags: ['api', 'sessions', 'certification-candidates'],
+      },
+    },
+    {
+      method: 'GET',
+      path: '/api/sessions/{id}/certified-clea-candidate-data',
+      config: {
+        auth: false,
+        handler: sessionWithCleaCertifiedCandidateController.getCleaCertifiedCandidateDataCsv,
+        tags: ['api', 'sessions', 'data'],
+        notes: [
+          'Cette route est accessible via un token généré par un utilisateur ayant le rôle SUPERADMIN',
+          "Elle retourne toutes les infos des candidats d'une session ayant obtenu la certification Clea, sous format CSV",
+        ],
       },
     },
   ]);
