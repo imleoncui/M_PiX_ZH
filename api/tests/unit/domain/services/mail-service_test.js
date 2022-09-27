@@ -648,4 +648,29 @@ describe('Unit | Service | MailService', function () {
       });
     });
   });
+
+  describe('#sendNotificationCertificationCenterRefererForCleaResults', function () {
+    it(`should call sendEmail with the right options`, async function () {
+      // given
+      const email = 'user@example.net';
+      const sessionId = 123;
+      const dateSession = '01/01/2022';
+
+      // when
+      await mailService.sendNotificationCertificationCenterRefererForCleaResults({
+        email,
+        sessionId,
+        dateSession,
+      });
+
+      // then
+      expect(mailer.sendEmail).to.have.been.calledWith({
+        from: 'ne-pas-repondre@pix.fr',
+        fromName: 'PIX - Ne pas répondre',
+        to: email,
+        template: mailer.acquiredCleaResultTemplateId,
+        variables: { sessionId, dateSession },
+      });
+    });
+  });
 });

@@ -342,6 +342,18 @@ function sendCpfEmail({ email, generatedFiles }) {
   return mailer.sendEmail(options);
 }
 
+function sendNotificationCertificationCenterRefererForCleaResults({ email, sessionId, dateSession }) {
+  const options = {
+    from: EMAIL_ADDRESS_NO_RESPONSE,
+    fromName: PIX_NAME_FR,
+    to: email,
+    template: mailer.acquiredCleaResultTemplateId,
+    variables: { sessionId, dateSession },
+  };
+
+  return mailer.sendEmail(options);
+}
+
 module.exports = {
   sendAccountCreationEmail,
   sendAccountRecoveryEmail,
@@ -351,4 +363,5 @@ module.exports = {
   sendResetPasswordDemandEmail,
   sendVerificationCodeEmail,
   sendCpfEmail,
+  sendNotificationCertificationCenterRefererForCleaResults,
 };
