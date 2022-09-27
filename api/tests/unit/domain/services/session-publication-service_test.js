@@ -318,8 +318,9 @@ describe('Unit | UseCase | session-publication-service', function () {
             publishedAt: null,
           });
           finalizedSessionRepository.get.withArgs({ sessionId: session.id }).resolves(finalizedSession);
-          mailService.sendCertificationResultEmail.onCall(0).resolves(EmailingAttempt.success(recipient1));
-          mailService.sendCertificationResultEmail.onCall(1).resolves(EmailingAttempt.success(recipient2));
+          mailService.sendNotificationCertificationCenterRefererForCleaResults.resolves(
+            EmailingAttempt.success(user.email)
+          );
           sessionRepository.hasSomeCleaAcquired.withArgs(session.id).resolves(true);
           certificationCenterRepository.getReferer.withArgs(session.certificationCenterId).resolves(user);
 
